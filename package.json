@@ -1,7 +1,7 @@
 {
-  "name": "p2-multi",
+  "name": "networked-physics",
   "version": "0.0.1",
-  "description": "P2 Mutli",
+  "description": "Socket.io and P2.js come together to make... something; that's for sure.",
   "main": "app.js",
   "engines": {
     "node": "6.6.0"
