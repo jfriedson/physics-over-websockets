@@ -1,0 +1,81 @@
+<html>
+    <body>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.2/pixi.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
+        <script type="text/javascript">
+                var zoom = 100;
+
+                var renderer =  PIXI.autoDetectRenderer(600, 400, {backgroundColor : 0x1099bb});
+                var stage = new PIXI.Container();
+
+                stage.position.x =  renderer.width/2;
+                stage.position.y =  renderer.height/2;
+                stage.scale.x =  zoom;
+                stage.scale.y = -zoom;
+
+                document.body.appendChild(renderer.view);
+
+                var world = new p2.World({
+                    gravity: [0, 0]
+                });
+
+                var graphics = [];
+
+                var socket = io();
+                socket.on('init', function(world_data) {
+                    console.log(world_data);
+
+                    for(i = 0; i < world_data.bodies.length; ++i) {
+                        var boxShape = new p2.Box({ width: 1, height: 1 });
+                        var boxBody = new p2.Body({
+                            mass: 1,
+                            position: world_data.bodies[i].position,
+                            angle: world_data.bodies[i].angle,
+                            velocity: world_data.bodies[i].velocity,
+                            angularVelocity: world_data.bodies[i].angularVelocity
+                        });
+                        boxBody.addShape(boxShape);
+
+                        world.addBody(boxBody);
+
+
+                        graphics[i] = new PIXI.Graphics();
+
+                        graphics[i].beginFill(0xff0000);
+                        graphics[i].drawRect(-boxShape.width/2, -boxShape.height/2, boxShape.width, boxShape.height);
+                        graphics[i].endFill();
+
+                        stage.addChild(graphics[i]);
+                    }
+
+                    setInterval(function() {
+                        world.step(1/64);
+                    }, 1000/64);
+
+                    animate();
+
+                    socket.on('world', function(world_data) {
+                        for(i = 0; i < world_data.bodies.length; ++i) {
+                            world.bodies[i].position = world_data.bodies[i].position;
+                            world.bodies[i].angle = world_data.bodies[i].angle;
+                            world.bodies[i].velocity = world_data.bodies[i].velocity;
+                            world.bodies[i].angularVelocity = world_data.bodies[i].angularVelocity;
+                        }
+                    });
+                });
+
+                function animate(){
+                    requestAnimationFrame(animate);
+                    
+                    for(i = 0; i < world.bodies.length; ++i) {
+                        graphics[i].position.x = world.bodies[i].position[0];
+                        graphics[i].position.y = world.bodies[i].position[1];
+                        graphics[i].rotation   = world.bodies[i].angle;
+                    }
+
+                    renderer.render(stage);
+                }
+        </script>
+    </body>
+</html>
