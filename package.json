@@ -1,11 +1,8 @@
 {
-  "name": "networked-physics",
-  "version": "0.0.1",
-  "description": "Socket.io and P2.js come together to make... something; that's for sure.",
+  "name": "physicsjs-multi",
+  "version": "0.0.2",
+  "description": "PhysicsJs Mutli",
   "main": "app.js",
-  "engines": {
-    "node": "6.6.0"
-  },
   "dependencies": {
     "express": "^4.14.0",
     "p2": "^0.7.1",
@@ -13,7 +10,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node app.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "Josh Friedson",
   "license": "ISC"

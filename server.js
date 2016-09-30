@@ -22,10 +22,6 @@ io.sockets.on('connection', function(socket) {
 
     socket.emit('init', world);
 
-    setInterval(function() {
-        socket.emit('world', world);
-    }, tickrate);
-
     /*client.on('input', function(data){
         process.send(data);
     });*/
@@ -34,3 +30,7 @@ io.sockets.on('connection', function(socket) {
         delete SOCKET_LIST[socket.id];
     });*/
 });
+
+setInterval(function() {
+    io.volatile.emit('world', world);
+}, tickrate);
