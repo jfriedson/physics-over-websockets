@@ -1,8 +1,10 @@
 var tickrate = process.argv[2];
 var world;
+var update;
 
 process.on('message', function(data) {
     world = data;
+    update = data;
 });
 
 var express = require('express')();
@@ -32,5 +34,5 @@ io.sockets.on('connection', function(socket) {
 });
 
 setInterval(function() {
-    io.volatile.emit('world', world);
+    io.volatile.emit('update', update);
 }, tickrate);

@@ -4,7 +4,7 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.2/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
-                var zoom = 70;
+                var zoom = 50;
 
                 var renderer =  PIXI.autoDetectRenderer(600, 400, {backgroundColor : 0x1099bb});
                 var stage = new PIXI.Container();
@@ -19,18 +19,28 @@
                 var world = new p2.World();
 
                 var planeShape = new p2.Plane();
-                var planeBody = new p2.Body({ position:[0,-1] });
+                var planeBody = new p2.Body({ position:[0,-4] });
                 planeBody.addShape(planeShape);
                 world.addBody(planeBody);
+
+                var room = new p2.Body();
 
                 var boxes = [];
                 var graphics = [];
 
                 var socket = io();
                 socket.on('init', function(world_data) {
-                    world.gravity = [0, world_data.gravity];
+                    world.gravity = world_data.gravity;
 
-                    for(i in world_data.boxes) {
+                    world.sleepMode = world_data.sleepMode;
+
+                    for(var i in world_data.room) {
+                        var planeShape = new p2.Plane();
+                        room.addShape(planeShape, world_data.room[i].position, world_data.room[i].angle);
+                    }
+                    world.addBody(room);
+
+                    for(var i in world_data.boxes) {
                         var boxShape = new p2.Box({ width: 1, height: 1 });
                         boxes[i] = new p2.Body({
                             mass: 1,
@@ -58,8 +68,8 @@
 
                     animate();
 
-                    socket.on('world', function(world_data) {
-                        for(i in world_data.boxes) {
+                    socket.on('update', function(world_data) {
+                        for(var i in world_data.boxes) {
                             boxes[i].position = world_data.boxes[i].position;
                             boxes[i].angle = world_data.boxes[i].angle;
                             boxes[i].velocity = world_data.boxes[i].velocity;
@@ -69,21 +79,24 @@
                 });
 
                 socket.on('disconnect', function() {
-                    for(i in boxes) {
+                    for(var i in boxes) {
                         world.removeBody(boxes[i]);
                     }
                     boxes.length = 0;
 
-                    for(i in graphics) {
+                    for(var i in graphics) {
                         stage.removeChild(graphics[i]);
                     }
                     graphics.length = 0;
+
+                    world.removeBody(room);
+                    room = new p2.Body();
                 });
 
                 function animate(){
                     requestAnimationFrame(animate);
                     
-                    for(i in boxes) {
+                    for(var i in boxes) {
                         graphics[i].position.x = boxes[i].position[0];
                         graphics[i].position.y = boxes[i].position[1];
                         graphics[i].rotation   = boxes[i].angle;
