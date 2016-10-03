@@ -51,31 +51,45 @@ setInterval(function() {
 //Express and WebSocket Server
 var socketserver = require("child_process").fork("./server", [tickrate]);
 
+var last_step = {};
+
 setInterval(function() {
     var world_data = {
-        gravity: gravity,
-        sleepMode: world.sleepMode,
         room: [],
         boxes: []
     };
 
+    if(world.gravity != last_step.gravity) {
+        world_data.gravity = world.gravity;
+    }
+
+    if(world.sleepMode != last_step.sleepMode) {
+        world_data.sleepMode = world.sleepMode;
+    }
+
     for(var i in boxes) {
-        world_data.boxes[i] = {};
-        world_data.boxes[i].position = boxes[i].position;
-        world_data.boxes[i].angle = boxes[i].angle;
-        world_data.boxes[i].velocity = boxes[i].velocity;
-        world_data.boxes[i].angularVelocity = boxes[i].angularVelocity;
+        if(boxes[i].sleepState != p2.Body.SLEEPING) {
+            world_data.boxes[i] = {};
+            world_data.boxes[i].position = boxes[i].position;
+            world_data.boxes[i].angle = boxes[i].angle;
+            world_data.boxes[i].velocity = boxes[i].velocity;
+            world_data.boxes[i].angularVelocity = boxes[i].angularVelocity;
+        }
     }
 
     for(var i in room.shapes) {
-        world_data.room[i] = {};
-        world_data.room[i].position = room.shapes[i].position;
-        world_data.room[i].angle = room.shapes[i].angle;
+        if(room.sleepState != p2.Body.SLEEPING) {
+            world_data.room[i] = {};
+            world_data.room[i].position = room.shapes[i].position;
+            world_data.room[i].angle = room.shapes[i].angle;
+        }
     }
     
     socketserver.send(world_data);
+
+    last_step = world_data;
 }, tickrate);
 
-socketserver.on('message', function(data){
+/*socketserver.on('message', function(data){
     p2.addforce = data.joint;
-});
+});*/
