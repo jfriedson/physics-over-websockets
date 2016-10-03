@@ -1,11 +1,28 @@
 var tickrate = process.argv[2];
-var world;
-var update;
+var world = {};
+var update = {};
 
 process.on('message', function(data) {
-    world = data;
     update = data;
+
+    applyChanges(world, data);
 });
+
+
+function applyChanges(a, b) {
+    for(var i in b) {
+        if(!Array.isArray(b[i])) {
+            if(b[i] != null) {
+                a[i] = b[i];
+            }
+        } else {
+            if(a[i] == null) {
+                a[i] = [];
+            }
+            applyChanges(a[i], b[i]);
+        }
+    }
+}
 
 var express = require('express')();
 var server = require('http').Server(express).listen(process.env.PORT || 28888);
