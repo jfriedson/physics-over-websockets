@@ -39,6 +39,8 @@ var io = require('socket.io')(server);
 io.sockets.on('connection', function(socket) {
     //SOCKET_LIST[socket.id] = socket;
 
+    process.send(world_data);
+
     socket.emit('init', world);
 
     /*client.on('input', function(data){
