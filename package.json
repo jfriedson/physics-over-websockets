@@ -4,7 +4,7 @@
   "description": "Socket.io and P2.js come together to make... something; that's for sure.",
   "main": "app.js",
   "engines": {
-    "node": "6.6.0"
+    "node": "6.7.0"
   },
   "dependencies": {
     "express": "^4.14.0",

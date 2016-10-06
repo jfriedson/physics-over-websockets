@@ -90,6 +90,6 @@ setInterval(function() {
     last_step = world_data;
 }, tickrate);
 
-/*socketserver.on('message', function(data){
-    p2.addforce = data.joint;
-});*/
+socketserver.on('message', function(data){
+    data.msg
+});
