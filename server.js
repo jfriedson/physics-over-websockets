@@ -33,23 +33,26 @@ express.get('/', function(req, res) {
 });
 
 
-//var SOCKET_LIST = {};
-
 var io = require('socket.io')(server);
 io.sockets.on('connection', function(socket) {
-    //SOCKET_LIST[socket.id] = socket;
-
-    process.send(world_data);
-
+    process.send({ msg: 'init', socket: socket.id });
     socket.emit('init', world);
 
-    /*client.on('input', function(data){
-        process.send(data);
-    });*/
+    socket.on('mdown', function(coord) {
+        process.send({ msg: 'mdown', socket: socket.id, pos: coord });
+    });
 
-    /*socket.on('disconnect', function() {
-        delete SOCKET_LIST[socket.id];
-    });*/
+    socket.on('mmove', function(coord) {
+        process.send({ msg: 'mmove', socket: socket.id, pos: coord });
+    });
+
+    socket.on('mup', function() {
+        process.send({ msg: 'mup', socket: socket.id });
+    });
+
+    socket.on('disconnect', function() {
+        process.send({ msg: 'disc', socket: socket.id });
+    });
 });
 
 setInterval(function() {
