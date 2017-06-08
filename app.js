@@ -18,7 +18,8 @@ var world = new p2.World({
     gravity: gravity
 });
 
-world.sleepMode = p2.World.ISLAND_SLEEPING;
+world.sleepMode = p2.World.BODY_SLEEPING;
+world.islandSplit = false;
 
 var room = new p2.Body();
 for(var i = 0; i < 4; ++i) {
@@ -30,7 +31,7 @@ world.addBody(room);
 
 var boxes = [];
 for(var i = 0; i < 5; ++i) {
-    var boxShape = new p2.Box({ width: 1, height: 1 });
+    var boxShape = new p2.Box({ width: 2, height: 1 });
     boxes[i] = new p2.Body({
         mass: 1,
         position: [-(i-2)*1.5, 1],
@@ -42,9 +43,6 @@ for(var i = 0; i < 5; ++i) {
 }
 
 setInterval(function() {
-    for(var i in boxes) {
-        boxes[i].angularVelocity = (i-2);
-    }
     world.step(fps/1000);
 }, fps);
 
@@ -90,6 +88,42 @@ setInterval(function() {
     last_step = world_data;
 }, tickrate);
 
-/*socketserver.on('message', function(data){
-    p2.addforce = data.joint;
-});*/
+var mice = {};
+var constraints = {};
+
+socketserver.on('message', function(data){
+    if(data.msg == 'init') {
+        mice[data.socket] = new p2.Body();
+        world.addBody(mice[data.socket]);
+    }
+
+    if(data.msg == 'mdown') {
+        mice[data.socket].position = data.pos;
+
+        var hitBodies = world.hitTest(data.pos, boxes);
+
+        if(hitBodies.length) {
+            constraints[data.socket] = new p2.RevoluteConstraint(mice[data.socket], hitBodies[0], {
+                worldPivot: mice[data.socket].position,
+                collideConnected: false
+            });
+            world.addConstraint(constraints[data.socket]);
+        }
+    }
+
+    if(data.msg == 'mmove') {
+        mice[data.socket].position = data.pos;
+    }
+
+    if(data.msg == 'mup') {
+        world.removeConstraint(constraints[data.socket]);
+        delete constraints[data.socket];
+    }
+
+    if(data.msg == 'disc') {
+        world.removeConstraint(constraints[data.socket]);
+        delete constraints[data.socket];
+        world.removeBody(mice[data.socket]);
+        delete mice[data.socket];
+    }
+});

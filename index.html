@@ -1,9 +1,10 @@
 <html>
     <body>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.2/pixi.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.slim.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
+            //(function() {
                 var zoom = 50;
 
                 var renderer =  PIXI.autoDetectRenderer(600, 400, {backgroundColor : 0x1099bb});
@@ -23,11 +24,14 @@
                 var boxes = [];
                 var graphics = [];
 
+                var step = 1;
+
                 var socket = io();
                 socket.on('init', function(world_data) {
                     world.gravity = world_data.gravity;
 
                     world.sleepMode = world_data.sleepMode;
+                    world.islandSplit = world_data.islandSplit;
 
                     for(var i in world_data.room) {
                         var planeShape = new p2.Plane();
@@ -36,7 +40,7 @@
                     world.addBody(room);
 
                     for(var i in world_data.boxes) {
-                        var boxShape = new p2.Box({ width: 1, height: 1 });
+                        var boxShape = new p2.Box({ width: 2, height: 1 });
                         boxes[i] = new p2.Body({
                             mass: 1,
                             position: world_data.boxes[i].position,
@@ -57,25 +61,81 @@
                         stage.addChild(graphics[i]);
                     }
 
-                    setInterval(function() {
-                        world.step(1/64);
-                    }, 1000/64);
+                    step = setInterval(function() {
+                        world.step(1/60);
+                    }, 1000/60);
 
                     animate();
-
-                    socket.on('update', function(world_data) {
-                        for(var i in world_data.boxes) {
-                            if(world_data.boxes[i] != null) {
-                                boxes[i].position = world_data.boxes[i].position;
-                                boxes[i].angle = world_data.boxes[i].angle;
-                                boxes[i].velocity = world_data.boxes[i].velocity;
-                                boxes[i].angularVelocity = world_data.boxes[i].angularVelocity;
-                            }
-                        }
-                    });
                 });
 
+                socket.on('update', function(world_data) {
+                    for(var i in world_data.boxes) {
+                        if(world_data.boxes[i] != null) {
+                            boxes[i].position = world_data.boxes[i].position;
+                            boxes[i].angle = world_data.boxes[i].angle;
+                            boxes[i].velocity = world_data.boxes[i].velocity;
+                            boxes[i].angularVelocity = world_data.boxes[i].angularVelocity;
+                        }
+                    }
+                });
+
+                renderer.view.addEventListener('mousedown', function(event) {
+                    var position = getPhysicsCoord(event);
+                    if(event.button === 0)
+                        socket.emit('mdown', position);
+                });
+                renderer.view.addEventListener('touchstart', function(event) {
+                    if (event.target == renderer.view) {
+                        event.preventDefault();
+                    }
+                    var position = getMPhysicsCoord(event);
+                    socket.volatile.emit('mdown', position);
+                });
+
+                renderer.view.addEventListener('mousemove', function(event) {
+                    var position = getPhysicsCoord(event);
+                    socket.emit('mmove', position);
+                });
+                renderer.view.addEventListener('touchmove', function(event) {
+                    if (event.target == renderer.view) {
+                        event.preventDefault();
+                    }
+                    var position = getMPhysicsCoord(event);
+                    socket.emit('mmove', position);
+                });
+
+                window.addEventListener('mouseup', function(event) {
+                    if(event.button === 0)
+                        socket.emit('mup');
+                });
+                window.addEventListener('touchend', function(event) {
+                    if (event.target == renderer.view) {
+                        event.preventDefault();
+                    }
+                    socket.emit('mup');
+                });
+
+                function getPhysicsCoord(mouseEvent){
+                    var rect = renderer.view.getBoundingClientRect();
+                    var x = mouseEvent.clientX - rect.left;
+                    var y = mouseEvent.clientY - rect.top;
+                    x = (x - renderer.view.width / 2) / stage.scale.x;
+                    y = (y - renderer.view.height / 2) / stage.scale.y;
+                    return [x, y];
+                }
+
+                function getMPhysicsCoord(touchEvent){
+                    var rect = renderer.view.getBoundingClientRect();
+                    var x = touchEvent.touches[0].clientX - rect.left;
+                    var y = touchEvent.touches[0].clientY - rect.top;
+                    x = (x - renderer.view.width / 2) / stage.scale.x;
+                    y = (y - renderer.view.height / 2) / stage.scale.y;
+                    return [x, y];
+                }
+
                 socket.on('disconnect', function() {
+                    clearInterval(step);
+                    
                     for(var i in boxes) {
                         world.removeBody(boxes[i]);
                     }
@@ -90,7 +150,7 @@
                     room = new p2.Body();
                 });
 
-                function animate(){
+                function animate() {
                     requestAnimationFrame(animate);
                     
                     for(var i in boxes) {
@@ -101,6 +161,15 @@
 
                     renderer.render(stage);
                 }
+
+                /*window.onresize = function (event) {
+                    var w = window.innerWidth;
+                    var h = window.innerHeight;
+                    renderer.view.style.width = w + "px";
+                    renderer.view.style.height = h + "px";
+                    renderer.resize(w,h);
+                }*/
+            //})();
         </script>
     </body>
 </html>
