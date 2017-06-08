@@ -123,7 +123,11 @@ socketserver.on('message', function(data){
     if(data.msg == 'disc') {
         world.removeConstraint(constraints[data.socket]);
         delete constraints[data.socket];
+<<<<<<< HEAD
         world.removeBody(mice[data.socket]);
+=======
+        //world.removeBody(mice[data.socket]);   //this enabled throws error
+>>>>>>> origin/Dev
         delete mice[data.socket];
     }
 });

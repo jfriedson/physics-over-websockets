@@ -1,10 +1,18 @@
 <html>
     <body>
+<<<<<<< HEAD
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.slim.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
             //(function() {
+=======
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
+        <script type="text/javascript">
+            (function() {
+>>>>>>> origin/Dev
                 var zoom = 50;
 
                 var renderer =  PIXI.autoDetectRenderer(600, 400, {backgroundColor : 0x1099bb});
@@ -61,7 +69,11 @@
                         stage.addChild(graphics[i]);
                     }
 
+<<<<<<< HEAD
                     step = setInterval(function() {
+=======
+                    setInterval(function() {
+>>>>>>> origin/Dev
                         world.step(1/60);
                     }, 1000/60);
 
@@ -76,6 +88,7 @@
                             boxes[i].velocity = world_data.boxes[i].velocity;
                             boxes[i].angularVelocity = world_data.boxes[i].angularVelocity;
                         }
+<<<<<<< HEAD
                     }
                 });
 
@@ -113,6 +126,43 @@
                         event.preventDefault();
                     }
                     socket.emit('mup');
+=======
+                    });
+
+                    renderer.view.addEventListener('mousedown', function(event) {
+                        var position = getPhysicsCoord(event);
+                        socket.emit('mdown', position);
+                    });
+                    renderer.view.addEventListener('touchstart', function(event) {
+                        if (event.target == renderer.view) {
+                            event.preventDefault();
+                        }
+                        var position = getMPhysicsCoord(event);
+                        socket.emit('mdown', position);
+                    });
+
+                    renderer.view.addEventListener('mousemove', function(event) {
+                        var position = getPhysicsCoord(event);
+                        socket.emit('mmove', position);
+                    });
+                    renderer.view.addEventListener('touchmove', function(event) {
+                        if (event.target == renderer.view) {
+                            event.preventDefault();
+                        }
+                        var position = getMPhysicsCoord(event);
+                        socket.emit('mmove', position);
+                    });
+
+                    renderer.view.addEventListener('mouseup', function(event) {
+                        socket.emit('mup');
+                    });
+                    renderer.view.addEventListener('touchend', function(event) {
+                        if (event.target == renderer.view) {
+                            event.preventDefault();
+                        }
+                        socket.emit('mup');
+                    });
+>>>>>>> origin/Dev
                 });
 
                 function getPhysicsCoord(mouseEvent){
@@ -162,14 +212,23 @@
                     renderer.render(stage);
                 }
 
+<<<<<<< HEAD
                 /*window.onresize = function (event) {
+=======
+                window.onresize = function (event) {
+>>>>>>> origin/Dev
                     var w = window.innerWidth;
                     var h = window.innerHeight;
                     renderer.view.style.width = w + "px";
                     renderer.view.style.height = h + "px";
                     renderer.resize(w,h);
+<<<<<<< HEAD
                 }*/
             //})();
+=======
+                }
+            })();
+>>>>>>> origin/Dev
         </script>
     </body>
 </html>
