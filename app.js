@@ -18,7 +18,8 @@ var world = new p2.World({
     gravity: gravity
 });
 
-world.sleepMode = p2.World.ISLAND_SLEEPING;
+world.sleepMode = p2.World.BODY_SLEEPING;
+world.islandSplit = false;
 
 var room = new p2.Body();
 for(var i = 0; i < 4; ++i) {
@@ -97,6 +98,9 @@ socketserver.on('message', function(data){
     }
 
     if(data.msg == 'mdown') {
+        world.removeConstraint(constraints[data.socket]);
+        delete constraints[data.socket];
+        
         mice[data.socket].position = data.pos;
 
         var hitBodies = world.hitTest(data.pos, boxes);
@@ -122,7 +126,7 @@ socketserver.on('message', function(data){
     if(data.msg == 'disc') {
         world.removeConstraint(constraints[data.socket]);
         delete constraints[data.socket];
-        //world.removeBody(mice[data.socket]);   //this enabled throws error
+        world.removeBody(mice[data.socket]);
         delete mice[data.socket];
     }
 });
