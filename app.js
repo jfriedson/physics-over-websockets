@@ -43,6 +43,10 @@ for(var i = 0; i < 5; ++i) {
 }
 
 setInterval(function() {
+    for(i in boxes)
+        if(i != 2)
+            boxes[i].angularVelocity = (i-2);
+
     world.step(fps/1000);
 }, fps);
 
@@ -97,7 +101,7 @@ socketserver.on('message', function(data){
         world.addBody(mice[data.socket]);
     }
 
-    if(data.msg == 'mdown') {
+    if(data.msg == 'pdown') {
         world.removeConstraint(constraints[data.socket]);
         delete constraints[data.socket];
         
@@ -114,11 +118,11 @@ socketserver.on('message', function(data){
         }
     }
 
-    if(data.msg == 'mmove') {
+    if(data.msg == 'pmove') {
         mice[data.socket].position = data.pos;
     }
 
-    if(data.msg == 'mup') {
+    if(data.msg == 'pup') {
         world.removeConstraint(constraints[data.socket]);
         delete constraints[data.socket];
     }

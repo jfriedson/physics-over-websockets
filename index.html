@@ -1,7 +1,7 @@
 <html>
     <body>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.slim.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.0.3/pixi.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.2/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
             (function() {
@@ -84,9 +84,7 @@
                     socket.emit('mdown', position);
                 });
                 renderer.view.addEventListener('touchstart', function(event) {
-                    if (event.target == renderer.view) {
-                        event.preventDefault();
-                    }
+                    event.preventDefault();
                     var position = getMPhysicsCoord(event);
                     socket.volatile.emit('mdown', position);
                 });
@@ -96,9 +94,7 @@
                     socket.emit('mmove', position);
                 });
                 renderer.view.addEventListener('touchmove', function(event) {
-                    if (event.target == renderer.view) {
-                        event.preventDefault();
-                    }
+                    event.preventDefault();
                     var position = getMPhysicsCoord(event);
                     socket.emit('mmove', position);
                 });
@@ -106,10 +102,13 @@
                 window.addEventListener('mouseup', function(event) {
                     socket.emit('mup');
                 });
+                window.addEventListener('touchcancel', function(event) {
+                    event.preventDefault();
+                    socket.emit('mup');
+                });
                 window.addEventListener('touchend', function(event) {
-                    if (event.target == renderer.view) {
+                    if(event.target == renderer.view)
                         event.preventDefault();
-                    }
                     socket.emit('mup');
                 });
 
@@ -124,8 +123,8 @@
 
                 function getMPhysicsCoord(touchEvent){
                     var rect = renderer.view.getBoundingClientRect();
-                    var x = touchEvent.touches[0].clientX - rect.left;
-                    var y = touchEvent.touches[0].clientY - rect.top;
+                    var x = touchEvent.targetTouches[0].clientX - rect.left;
+                    var y = touchEvent.targetTouches[0].clientY - rect.top;
                     x = (x - renderer.view.width / 2) / stage.scale.x;
                     y = (y - renderer.view.height / 2) / stage.scale.y;
                     return [x, y];

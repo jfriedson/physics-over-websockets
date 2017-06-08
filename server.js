@@ -39,15 +39,15 @@ io.sockets.on('connection', function(socket) {
     socket.emit('init', world);
 
     socket.on('mdown', function(coord) {
-        process.send({ msg: 'mdown', socket: socket.id, pos: coord });
+        process.send({ msg: 'pdown', socket: socket.id, pos: coord });
     });
 
     socket.on('mmove', function(coord) {
-        process.send({ msg: 'mmove', socket: socket.id, pos: coord });
+        process.send({ msg: 'pmove', socket: socket.id, pos: coord });
     });
 
     socket.on('mup', function() {
-        process.send({ msg: 'mup', socket: socket.id });
+        process.send({ msg: 'pup', socket: socket.id });
     });
 
     socket.on('disconnect', function() {
