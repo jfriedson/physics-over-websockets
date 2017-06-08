@@ -18,7 +18,7 @@ var world = new p2.World({
     gravity: gravity
 });
 
-world.sleepMode = p2.World.BODY_SLEEPING;
+world.sleepMode = p2.World.ISLAND_SLEEPING;
 world.islandSplit = false;
 
 var room = new p2.Body();

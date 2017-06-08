@@ -81,8 +81,7 @@
 
                 renderer.view.addEventListener('mousedown', function(event) {
                     var position = getPhysicsCoord(event);
-                    if(event.button === 0)
-                        socket.emit('mdown', position);
+                    socket.emit('mdown', position);
                 });
                 renderer.view.addEventListener('touchstart', function(event) {
                     if (event.target == renderer.view) {
@@ -105,8 +104,7 @@
                 });
 
                 window.addEventListener('mouseup', function(event) {
-                    if(event.button === 0)
-                        socket.emit('mup');
+                    socket.emit('mup');
                 });
                 window.addEventListener('touchend', function(event) {
                     if (event.target == renderer.view) {
