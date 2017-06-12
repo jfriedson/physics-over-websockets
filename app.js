@@ -25,16 +25,16 @@ var room = new p2.Body();
 for(var i = 0; i < 4; ++i) {
     var planeShape = new p2.Plane();
     var angle = (i * Math.PI)/2;
-    room.addShape(planeShape, [6*Math.sin(angle), -4*Math.cos(angle)], angle);
+    room.addShape(planeShape, [16*Math.sin(angle), -9*Math.cos(angle)], angle);
 }
 world.addBody(room);
 
 var boxes = [];
 for(var i = 0; i < 5; ++i) {
-    var boxShape = new p2.Box({ width: 2, height: 1 });
+    var boxShape = new p2.Box({ width: 4, height: 2 });
     boxes[i] = new p2.Body({
         mass: 1,
-        position: [-(i-2)*1.5, 1],
+        position: [-(i-2)*3, 7],
         angularVelocity: 0,
         angle: 0
     });
