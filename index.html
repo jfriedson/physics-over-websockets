@@ -1,21 +1,45 @@
 <html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <title>Online Physics Sandbox</title>
+        <style type="text/css">
+            * { margin: 0; padding: 0; }
+
+            body, html { height: 100%; width: 100%; overflow: hidden; }
+
+            body { background-color: #000000; }
+        </style>
+    </head>
     <body>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.slim.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.2/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
-            (function() {
+            //(function() {
                 var zoom = 50;
 
-                var renderer =  PIXI.autoDetectRenderer(600, 400, {backgroundColor : 0x1099bb});
+                PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
+                var renderer =  PIXI.autoDetectRenderer(1600, 900, {backgroundColor : 0x0000FF, autoResize : true});
                 var stage = new PIXI.Container();
 
+                resize();
                 stage.position.x =  renderer.width/2;
                 stage.position.y =  renderer.height/2;
-                stage.scale.x =  zoom;
-                stage.scale.y = -zoom;
 
                 document.body.appendChild(renderer.view);
+                renderer.view.oncontextmenu = function (e) {
+                    e.preventDefault();
+                };
+                window.onkeydown = function (e) {
+                    e.preventDefault();
+                    if(e.keyCode == '82') {
+                        zoom = 50;
+                        stage.position.x =  renderer.width/2;
+                        stage.position.y =  renderer.height/2;
+                        resize();
+                    }
+                };
+                window.addEventListener('resize', resize);
 
                 var world = new p2.World();
 
@@ -23,6 +47,15 @@
 
                 var boxes = [];
                 var graphics = [];
+
+                graphics[0] = new PIXI.Graphics();
+
+                graphics[0].beginFill(0x1099bbF);
+                graphics[0].drawRect(-16, -9, 32, 18);
+                graphics[0].endFill();
+
+                stage.addChild(graphics[0]);
+
 
                 var step = 1;
 
@@ -40,7 +73,7 @@
                     world.addBody(room);
 
                     for(var i in world_data.boxes) {
-                        var boxShape = new p2.Box({ width: 2, height: 1 });
+                        var boxShape = new p2.Box({ width: 4, height: 2 });
                         boxes[i] = new p2.Body({
                             mass: 1,
                             position: world_data.boxes[i].position,
@@ -52,13 +85,13 @@
 
                         world.addBody(boxes[i]);
 
-                        graphics[i] = new PIXI.Graphics();
+                        graphics[i+1] = new PIXI.Graphics();
 
-                        graphics[i].beginFill(0xFF0000);
-                        graphics[i].drawRect(-boxShape.width/2, -boxShape.height/2, boxShape.width, boxShape.height);
-                        graphics[i].endFill();
+                        graphics[i+1].beginFill(0xFF0000);
+                        graphics[i+1].drawRect(-boxShape.width/2, -boxShape.height/2, boxShape.width, boxShape.height);
+                        graphics[i+1].endFill();
 
-                        stage.addChild(graphics[i]);
+                        stage.addChild(graphics[i+1]);
                     }
 
                     step = setInterval(function() {
@@ -79,31 +112,85 @@
                     }
                 });
 
+                var mode = 'none';
+                var real = [];
+                var position;
+                var dpan;
+
                 renderer.view.addEventListener('mousedown', function(event) {
-                    var position = getPhysicsCoord(event);
-                    socket.emit('mdown', position);
+                    event.preventDefault();
+                    if(mode === 'none') {
+                        position = getPhysicsCoord(event);
+
+                        if((event.button === 0 || event.button === 2) && world.hitTest(position, boxes).length > 0) {
+                            socket.emit('mdown', position);
+                            mode = 'interact';
+                        } else if (event.button === 0 && event.shiftKey) {
+                            mode = 'ipan';
+                        } else if (event.button === 1) {
+                            mode = 'dpan';
+                            real = [[event.clientX, event.clientY], [event.clientX, event.clientY]];
+                            dpan = setInterval(function() {
+                                stage.position.x -= (real[1][0] - real[0][0])/10;
+                                stage.position.y -= (real[1][1] - real[0][1])/10;
+                            }, 1000/60);
+                        }
+                    }
                 });
                 renderer.view.addEventListener('touchstart', function(event) {
                     event.preventDefault();
-                    var position = getMPhysicsCoord(event);
-                    socket.volatile.emit('mdown', position);
+                    position = getMPhysicsCoord(event);
+                    socket.emit('mdown', position);
                 });
 
                 renderer.view.addEventListener('mousemove', function(event) {
-                    var position = getPhysicsCoord(event);
-                    socket.emit('mmove', position);
+                    event.preventDefault();
+
+                    var tposition = getPhysicsCoord(event);
+
+                    if(mode === 'interact') {
+                        socket.emit('mmove', tposition);
+                    } else if(mode === 'ipan') {
+                        stage.position.x += (tposition[0] - position[0])*zoom/5;
+                        stage.position.y -= (tposition[1] - position[1])*zoom/5;
+                    } else {
+                        real[1] = [event.clientX, event.clientY];
+                    }
+
+                    position = tposition;
                 });
                 renderer.view.addEventListener('touchmove', function(event) {
                     event.preventDefault();
-                    var position = getMPhysicsCoord(event);
+                    position = getMPhysicsCoord(event);
                     socket.emit('mmove', position);
                 });
 
+                renderer.view.addEventListener('wheel', function(event) {
+                    event.preventDefault();
+
+                    if((event.deltaX + event.deltaY + event.deltaZ) > 0) {
+                        if(zoom > 1)
+                            zoom -= 1;
+                    } else
+                        zoom += 1;
+
+                    resize();
+                });
+
                 window.addEventListener('mouseup', function(event) {
-                    socket.emit('mup');
+                    if(mode !== 'none') {
+                        event.preventDefault();
+
+                        if(mode === 'interact')
+                            socket.emit('mup');
+
+                        clearInterval(dpan);
+                        mode = 'none';
+                    }
                 });
                 window.addEventListener('touchcancel', function(event) {
-                    event.preventDefault();
+                    if(event.target == renderer.view)
+                        event.preventDefault();
                     socket.emit('mup');
                 });
                 window.addEventListener('touchend', function(event) {
@@ -114,8 +201,8 @@
 
                 function getPhysicsCoord(mouseEvent){
                     var rect = renderer.view.getBoundingClientRect();
-                    var x = mouseEvent.clientX - rect.left;
-                    var y = mouseEvent.clientY - rect.top;
+                    var x = mouseEvent.clientX - rect.left + (renderer.view.width/2 - stage.position.x);
+                    var y = mouseEvent.clientY - rect.top + (renderer.view.height/2 - stage.position.y);
                     x = (x - renderer.view.width / 2) / stage.scale.x;
                     y = (y - renderer.view.height / 2) / stage.scale.y;
                     return [x, y];
@@ -139,9 +226,11 @@
                     boxes.length = 0;
 
                     for(var i in graphics) {
-                        stage.removeChild(graphics[i]);
+                        if(i > 0) {
+                            stage.removeChild(graphics[i]);
+                            graphics[i] = null;
+                        }
                     }
-                    graphics.length = 0;
 
                     world.removeBody(room);
                     room = new p2.Body();
@@ -151,22 +240,30 @@
                     requestAnimationFrame(animate);
                     
                     for(var i in boxes) {
-                        graphics[i].position.x = boxes[i].position[0];
-                        graphics[i].position.y = boxes[i].position[1];
-                        graphics[i].rotation   = boxes[i].angle;
+                        graphics[i+1].position.x = boxes[i].position[0];
+                        graphics[i+1].position.y = boxes[i].position[1];
+                        graphics[i+1].rotation   = boxes[i].angle;
                     }
 
                     renderer.render(stage);
                 }
 
-                /*window.onresize = function (event) {
+                function resize() {
                     var w = window.innerWidth;
                     var h = window.innerHeight;
-                    renderer.view.style.width = w + "px";
-                    renderer.view.style.height = h + "px";
-                    renderer.resize(w,h);
-                }*/
-            })();
+
+                    renderer.resize(w, h);
+
+                    stage.scale.x = zoom*w/1600;
+                    stage.scale.y = -zoom*h/900;
+
+                    if(stage.scale.x > (-stage.scale.y)) {
+                        stage.scale.x = -stage.scale.y;
+                    } else {
+                        stage.scale.y = -stage.scale.x;
+                    }
+                }
+            //})();
         </script>
     </body>
 </html>
