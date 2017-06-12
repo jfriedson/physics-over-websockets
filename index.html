@@ -15,7 +15,7 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.2/pixi.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p2.js/0.7.1/p2.min.js"></script>
         <script type="text/javascript">
-            //(function() {
+            (function() {
                 var zoom = 50;
 
                 PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
@@ -39,7 +39,6 @@
                         resize();
                     }
                 };
-                window.addEventListener('resize', resize);
 
                 var world = new p2.World();
 
@@ -248,6 +247,9 @@
                     renderer.render(stage);
                 }
 
+                window.addEventListener('resize', resize);
+                window.addEventListener('orientationchange', orientationchange);
+
                 function resize() {
                     var w = window.innerWidth;
                     var h = window.innerHeight;
@@ -263,7 +265,12 @@
                         stage.scale.y = -stage.scale.x;
                     }
                 }
-            //})();
+
+                function orientationchange() {
+                    stage.position.x =  renderer.width/2;
+                    stage.position.y =  renderer.height/2;
+                }
+            })();
         </script>
     </body>
 </html>
