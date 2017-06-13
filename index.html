@@ -141,6 +141,12 @@
                     event.preventDefault();
                     position = getMPhysicsCoord(event);
                     socket.emit('mdown', position);
+                    if(event.touches.length === 3) {
+                        zoom = 50;
+                        stage.position.x =  renderer.width/2;
+                        stage.position.y =  renderer.height/2;
+                        resize();
+                    }
                 });
 
                 renderer.view.addEventListener('mousemove', function(event) {
@@ -268,11 +274,9 @@
                 }
 
                 function orientationchange() {
-                    setTimeout(function() {
-                        resize();
-                        stage.position.x =  renderer.width/2;
-                        stage.position.y =  renderer.height/2;
-                    }, 500);
+                    resize();
+                    stage.position.x =  renderer.width/2;
+                    stage.position.y =  renderer.height/2;
                 }
             })();
         </script>
