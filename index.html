@@ -274,9 +274,12 @@
                 }
 
                 function orientationchange() {
+                    window.scrollTo(0, 0);
                     resize();
+                    window.scrollTo(0, 0);
                     stage.position.x =  renderer.width/2;
                     stage.position.y =  renderer.height/2;
+                    window.scrollTo(0, 0);
                 }
             })();
         </script>
