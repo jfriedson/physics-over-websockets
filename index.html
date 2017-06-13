@@ -268,9 +268,11 @@
                 }
 
                 function orientationchange() {
-                    resize();
-                    stage.position.x =  renderer.width/2;
-                    stage.position.y =  renderer.height/2;
+                    setTimeout(function() {
+                        resize();
+                        stage.position.x =  renderer.width/2;
+                        stage.position.y =  renderer.height/2;
+                    }, 500);
                 }
             })();
         </script>
