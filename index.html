@@ -45,7 +45,7 @@
 
                 var room = new p2.Body();
 
-                var boxes = [];
+                var objects = [];
                 var graphics = [];
 
                 graphics[0] = new PIXI.Graphics();
@@ -72,24 +72,30 @@
                     }
                     world.addBody(room);
 
-                    for(var i in world_data.boxes) {
-                        var boxShape = new p2.Box({ width: 4, height: 2 });
-                        boxes[i] = new p2.Body({
+                    for(var i in world_data.objects) {
+                        objects[i] = new p2.Body({
                             mass: 1,
-                            position: world_data.boxes[i].position,
-                            angle: world_data.boxes[i].angle,
-                            velocity: world_data.boxes[i].velocity,
-                            angularVelocity: world_data.boxes[i].angularVelocity
+                            position: world_data.objects[i].position,
+                            angle: world_data.objects[i].angle,
+                            velocity: world_data.objects[i].velocity,
+                            angularVelocity: world_data.objects[i].angularVelocity
                         });
-                        boxes[i].addShape(boxShape);
+                        objects[i].addShape(objects[i].shapes[0]);
 
-                        world.addBody(boxes[i]);
+                        world.addBody(objects[i]);
 
                         graphics[i+1] = new PIXI.Graphics();
 
-                        graphics[i+1].beginFill(0xFF0000);
-                        graphics[i+1].drawRect(-boxShape.width/2, -boxShape.height/2, boxShape.width, boxShape.height);
-                        graphics[i+1].endFill();
+                        graphics[i+1].beginFill(Math.floor(Math.random()*16777215));
+
+                        if(objects[i].shapes[0].BOX) {
+                            graphics[i+1].drawRect(-objects[i].shape[0].width/2, -objects[i].shape[0].height/2, objects[i].shape[0].width, objects[i].shape[0].height);
+                            graphics[i+1].endFill();
+                        }
+                        else if(objects[i].shapes[0].CIRCLE) {
+                            graphics[i+1].drawCircle(-objects[i].shape[0].width/2, -objects[i].shape[0].height/2, objects[i].shape[0].radius);
+                            graphics[i+1].endFill();
+                        }
 
                         stage.addChild(graphics[i+1]);
                     }
@@ -102,12 +108,12 @@
                 });
 
                 socket.on('update', function(world_data) {
-                    for(var i in world_data.boxes) {
-                        if(world_data.boxes[i] != null) {
-                            boxes[i].position = world_data.boxes[i].position;
-                            boxes[i].angle = world_data.boxes[i].angle;
-                            boxes[i].velocity = world_data.boxes[i].velocity;
-                            boxes[i].angularVelocity = world_data.boxes[i].angularVelocity;
+                    for(var i in world_data.objects) {
+                        if(world_data.objects[i] != null) {
+                            objects[i].position = world_data.objects[i].position;
+                            objects[i].angle = world_data.objects[i].angle;
+                            objects[i].velocity = world_data.objects[i].velocity;
+                            objects[i].angularVelocity = world_data.objects[i].angularVelocity;
                         }
                     }
                 });
@@ -122,7 +128,7 @@
                     if(mode === 'none') {
                         position = getPhysicsCoord(event);
 
-                        if((event.button === 0 || event.button === 2) && world.hitTest(position, boxes).length > 0) {
+                        if((event.button === 0 || event.button === 2) && world.hitTest(position, objects).length > 0) {
                             socket.emit('mdown', position);
                             mode = 'interact';
                         } else if (event.button === 0 && event.shiftKey) {
@@ -226,10 +232,10 @@
                 socket.on('disconnect', function() {
                     clearInterval(step);
                     
-                    for(var i in boxes) {
-                        world.removeBody(boxes[i]);
+                    for(var i in objects) {
+                        world.removeBody(objects[i]);
                     }
-                    boxes.length = 0;
+                    objects.length = 0;
 
                     for(var i in graphics) {
                         if(i > 0) {
@@ -245,10 +251,10 @@
                 function animate() {
                     requestAnimationFrame(animate);
                     
-                    for(var i in boxes) {
-                        graphics[i+1].position.x = boxes[i].position[0];
-                        graphics[i+1].position.y = boxes[i].position[1];
-                        graphics[i+1].rotation   = boxes[i].angle;
+                    for(var i in objects) {
+                        graphics[i+1].position.x = objects[i].position[0];
+                        graphics[i+1].position.y = objects[i].position[1];
+                        graphics[i+1].rotation   = objects[i].angle;
                     }
 
                     renderer.render(stage);

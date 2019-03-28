@@ -29,23 +29,35 @@ for(var i = 0; i < 4; ++i) {
 }
 world.addBody(room);
 
-var boxes = [];
+var objects = [];
 for(var i = 0; i < 5; ++i) {
     var boxShape = new p2.Box({ width: 4, height: 2 });
-    boxes[i] = new p2.Body({
+    objects[i] = new p2.Body({
         mass: 1,
         position: [-(i-2)*3, 7],
         angularVelocity: 0,
         angle: 0
     });
-    boxes[i].addShape(boxShape);
-    world.addBody(boxes[i]);
+    objects[i].addShape(boxShape);
+    world.addBody(objects[i]);
+}
+
+for(var i = 0; i < 5; ++i) {
+    var cirShape = new p2.Circle({ raidus: 1.25 });
+    objects[i] = new p2.Body({
+        mass: 1,
+        position: [-(i-2)*3, 6],
+        angularVelocity: 0,
+        angle: 0
+    });
+    objects[i].addShape(cirShape);
+    world.addBody(objects[i]);
 }
 
 setInterval(function() {
-    for(i in boxes)
+    for(i in objects)
         if(i != 2)
-            boxes[i].angularVelocity = (i-2);
+            objects[i].angularVelocity = ((i%5)-2);
 
     world.step(fps/1000);
 }, fps);
@@ -58,7 +70,7 @@ var last_step = {};
 setInterval(function() {
     var world_data = {
         room: [],
-        boxes: []
+        objects: []
     };
 
     if(world.gravity != last_step.gravity) {
@@ -69,13 +81,13 @@ setInterval(function() {
         world_data.sleepMode = world.sleepMode;
     }
 
-    for(var i in boxes) {
-        if(boxes[i].sleepState != p2.Body.SLEEPING) {
-            world_data.boxes[i] = {};
-            world_data.boxes[i].position = boxes[i].position;
-            world_data.boxes[i].angle = boxes[i].angle;
-            world_data.boxes[i].velocity = boxes[i].velocity;
-            world_data.boxes[i].angularVelocity = boxes[i].angularVelocity;
+    for(var i in objects) {
+        if(objects[i].sleepState != p2.Body.SLEEPING) {
+            world_data.objects[i] = {};
+            world_data.objects[i].position = objects[i].position;
+            world_data.objects[i].angle = objects[i].angle;
+            world_data.objects[i].velocity = objects[i].velocity;
+            world_data.objects[i].angularVelocity = objects[i].angularVelocity;
         }
     }
 
@@ -107,7 +119,7 @@ socketserver.on('message', function(data){
         
         mice[data.socket].position = data.pos;
 
-        var hitBodies = world.hitTest(data.pos, boxes);
+        var hitBodies = world.hitTest(data.pos, objects);
 
         if(hitBodies.length) {
             constraints[data.socket] = new p2.RevoluteConstraint(mice[data.socket], hitBodies[0], {
