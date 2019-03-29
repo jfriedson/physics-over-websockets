@@ -1,15 +1,15 @@
 {
   "name": "networked-physics",
   "version": "0.0.2",
-  "description": "Socket.io and P2.js come together to make... something; that's for sure.",
+  "description": "Physics sandbox on node.js",
   "main": "app.js",
   "engines": {
     "node": "6.7.0"
   },
   "dependencies": {
-    "express": "^4.15.3",
+    "express": "^4.16.4",
     "p2": "^0.7.1",
-    "socket.io": "^2.0.2"
+    "socket.io": "^2.2.0"
   },
   "devDependencies": {},
   "scripts": {
