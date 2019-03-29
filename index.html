@@ -45,7 +45,7 @@
 
                 var room = new p2.Body();
 
-                var objects = [];
+                var bodies = [];
                 var graphics = [];
 
                 graphics[0] = new PIXI.Graphics();
@@ -72,31 +72,38 @@
                     }
                     world.addBody(room);
 
-                    for(var i in world_data.objects) {
-                        objects[i] = new p2.Body({
-                            mass: 1,
-                            position: world_data.objects[i].position,
-                            angle: world_data.objects[i].angle,
-                            velocity: world_data.objects[i].velocity,
-                            angularVelocity: world_data.objects[i].angularVelocity
-                        });
-                        objects[i].addShape(objects[i].shapes[0]);
+                    for(var i in world_data.bodies) {
+                        var boxShape = new p2.Box({ width: 4, height: 2 });
+                        var cirShape = new p2.Circle({ radius: 1 });
 
-                        world.addBody(objects[i]);
+                        bodies[i] = new p2.Body({
+                            mass: 1,
+                            position: world_data.bodies[i].position,
+                            angle: world_data.bodies[i].angle,
+                            velocity: world_data.bodies[i].velocity,
+                            angularVelocity: world_data.bodies[i].angularVelocity
+                        });
 
                         graphics[i+1] = new PIXI.Graphics();
 
-                        graphics[i+1].beginFill(Math.floor(Math.random()*16777215));
-
-                        if(objects[i].shapes[0].BOX) {
-                            graphics[i+1].drawRect(-objects[i].shape[0].width/2, -objects[i].shape[0].height/2, objects[i].shape[0].width, objects[i].shape[0].height);
-                            graphics[i+1].endFill();
-                        }
-                        else if(objects[i].shapes[0].CIRCLE) {
-                            graphics[i+1].drawCircle(-objects[i].shape[0].width/2, -objects[i].shape[0].height/2, objects[i].shape[0].radius);
+                        if(world_data.bodies[i].shape == p2.Shape.BOX) {
+                            bodies[i].addShape(boxShape);
+                            graphics[i+1].beginFill(Math.floor(Math.random()*16777215));
+                            graphics[i+1].drawRect(-boxShape.width/2, -boxShape.height/2, boxShape.width, boxShape.height);
                             graphics[i+1].endFill();
                         }
 
+                        if(world_data.bodies[i].shape == p2.Shape.CIRCLE) {
+                            bodies[i].addShape(cirShape);
+                            graphics[i+1].beginFill(Math.floor(Math.random()*16777215));
+                            graphics[i+1].drawCircle(0, 0, cirShape.radius);
+                            graphics[i+1].endFill();
+                            graphics[i+1].beginFill(0x000000);
+                            graphics[i+1].drawRect(-.05, 0, .1, cirShape.radius);
+                            graphics[i+1].endFill();
+                        }
+
+                        world.addBody(bodies[i]);
                         stage.addChild(graphics[i+1]);
                     }
 
@@ -108,12 +115,12 @@
                 });
 
                 socket.on('update', function(world_data) {
-                    for(var i in world_data.objects) {
-                        if(world_data.objects[i] != null) {
-                            objects[i].position = world_data.objects[i].position;
-                            objects[i].angle = world_data.objects[i].angle;
-                            objects[i].velocity = world_data.objects[i].velocity;
-                            objects[i].angularVelocity = world_data.objects[i].angularVelocity;
+                    for(var i in world_data.bodies) {
+                        if(world_data.bodies[i] != null) {
+                            bodies[i].position = world_data.bodies[i].position;
+                            bodies[i].angle = world_data.bodies[i].angle;
+                            bodies[i].velocity = world_data.bodies[i].velocity;
+                            bodies[i].angularVelocity = world_data.bodies[i].angularVelocity;
                         }
                     }
                 });
@@ -128,7 +135,7 @@
                     if(mode === 'none') {
                         position = getPhysicsCoord(event);
 
-                        if((event.button === 0 || event.button === 2) && world.hitTest(position, objects).length > 0) {
+                        if((event.button === 0 || event.button === 2) && world.hitTest(position, bodies).length > 0) {
                             socket.emit('mdown', position);
                             mode = 'interact';
                         } else if (event.button === 0 && event.shiftKey) {
@@ -232,10 +239,10 @@
                 socket.on('disconnect', function() {
                     clearInterval(step);
                     
-                    for(var i in objects) {
-                        world.removeBody(objects[i]);
+                    for(var i in bodies) {
+                        world.removeBody(bodies[i]);
                     }
-                    objects.length = 0;
+                    bodies.length = 0;
 
                     for(var i in graphics) {
                         if(i > 0) {
@@ -251,10 +258,10 @@
                 function animate() {
                     requestAnimationFrame(animate);
                     
-                    for(var i in objects) {
-                        graphics[i+1].position.x = objects[i].position[0];
-                        graphics[i+1].position.y = objects[i].position[1];
-                        graphics[i+1].rotation   = objects[i].angle;
+                    for(var i in bodies) {
+                        graphics[i+1].position.x = bodies[i].position[0];
+                        graphics[i+1].position.y = bodies[i].position[1];
+                        graphics[i+1].rotation   = bodies[i].angle;
                     }
 
                     renderer.render(stage);
