@@ -1,15 +1,15 @@
 {
   "name": "networked-physics",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Physics sandbox on node.js",
   "main": "app.js",
   "engines": {
-    "node": "10.15.3"
+    "node": "12.16.1"
   },
   "dependencies": {
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "p2": "^0.7.1",
-    "socket.io": "^2.2.0"
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {},
   "scripts": {
