@@ -1,5 +1,7 @@
 # Networked-Physics
-Physics sandbox on node.js.  Simulation runs on both server and client for smooth experience, and user interaction with the canvas is sent to the server to let it be the master of the simulation (prevents cheating in online games).
+The physics simulation runs on both the server and client for a smooth experience. User interaction with the canvas is sent to the server over a websocket to let it be the master of the simulation - this prevents cheating in online games.
+
+![Demo screenshot](demo.jpg?raw=true)
 
 ### How to Use
 Start app.js using node.
