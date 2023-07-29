@@ -4,10 +4,10 @@ The physics simulation runs on both the server and client for a smooth experienc
 ![Demo screenshot](demo.jpg?raw=true)
 
 ### How to Use
-Start app.js using node.
+Start app.js in nodejs.\
 Access app through browser (either localhost or domain/server ip)
 
 ## Dependencies
-P2.js - Physics
-Socket.io - Websockets for networking
+P2.js - Physics\
+Socket.io - Websockets for networking\
 Express - Hosts app for client
